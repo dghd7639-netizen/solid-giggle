@@ -33,8 +33,13 @@
     composerRect,
     sharesFormContainer,
     sharesFooterContainer,
+    primaryComposerInForm,
     viewportHeight
   }) {
+    if (primaryComposerInForm) {
+      return true;
+    }
+
     if (sharesFormContainer || sharesFooterContainer) {
       return true;
     }
@@ -2066,6 +2071,16 @@
     return false;
   }
 
+  function isPrimaryComposerElement(node) {
+    if (!(node instanceof HTMLElement)) {
+      return false;
+    }
+
+    return node.matches(
+      "textarea, [contenteditable='true'][role='textbox'], [contenteditable='true']#prompt-textarea, [role='textbox']#prompt-textarea"
+    );
+  }
+
   function isNearConversationInput(node, composerOverride) {
     if (!(node instanceof HTMLElement)) {
       return false;
@@ -2084,6 +2099,7 @@
       composerRect: composer instanceof HTMLElement ? composer.getBoundingClientRect() : null,
       sharesFormContainer: Boolean(nodeForm && composerForm && nodeForm === composerForm),
       sharesFooterContainer: Boolean(nodeFooter && composerFooter && nodeFooter === composerFooter),
+      primaryComposerInForm: !composer && Boolean(nodeForm) && isPrimaryComposerElement(node),
       viewportHeight
     });
   }

@@ -67,6 +67,34 @@ test("rejects low-page controls that are far from the composer and not in the sa
   );
 });
 
+test("accepts the primary ChatGPT composer when it is centered on the home page", () => {
+  assert.equal(
+    shouldTreatNodeAsNearComposer({
+      nodeRect: { top: 289, bottom: 329, left: 492, right: 904 },
+      composerRect: null,
+      sharesFormContainer: false,
+      sharesFooterContainer: false,
+      primaryComposerInForm: true,
+      viewportHeight: 655
+    }),
+    true
+  );
+});
+
+test("keeps unrelated mid-page controls rejected without primary composer identity", () => {
+  assert.equal(
+    shouldTreatNodeAsNearComposer({
+      nodeRect: { top: 289, bottom: 329, left: 492, right: 904 },
+      composerRect: null,
+      sharesFormContainer: false,
+      sharesFooterContainer: false,
+      primaryComposerInForm: false,
+      viewportHeight: 655
+    }),
+    false
+  );
+});
+
 test("accepts explicit tools labels for the composer toolbar", () => {
   assert.equal(isStrongToolButtonText("Tools"), true);
   assert.equal(isStrongToolButtonText("更多工具"), true);
