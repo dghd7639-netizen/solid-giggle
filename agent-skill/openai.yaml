@@ -1,0 +1,4 @@
+interface:
+  display_name: "gpt生图插件"
+  short_description: "导入提示词到本地生图插件，确认后再开始执行"
+  default_prompt: "@gpt生图插件\n提示词：\n一只小猫\n一只小狗"

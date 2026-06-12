@@ -1,0 +1,17 @@
+{
+  "name": "chatgpt-batch-image-generator",
+  "version": "1.0.0",
+  "description": "ChatGPT 网页端批量生图插件 — Chrome 扩展 + Native Messaging Host + CLI 控制台",
+  "private": true,
+  "main": "cli.js",
+  "bin": {
+    "cgbi": "./cli.js"
+  },
+  "scripts": {
+    "status": "node cli.js status",
+    "start": "node cli.js start --timeout-total 300",
+    "help": "node cli.js help"
+  },
+  "keywords": ["chatgpt", "image-generation", "chrome-extension", "native-messaging", "cli"],
+  "license": "MIT"
+}

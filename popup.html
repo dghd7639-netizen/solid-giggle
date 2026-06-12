@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT 批量生图</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="app">
+      <section class="panel hero">
+        <div>
+          <h1>ChatGPT 批量生图</h1>
+          <p id="queueStatusText">队列状态加载中...</p>
+        </div>
+        <div class="summary" id="summary"></div>
+      </section>
+
+      <section class="panel">
+        <h2>导入 Prompt</h2>
+        <textarea id="promptInput" rows="7" placeholder="一行一个 prompt"></textarea>
+        <div class="row">
+          <button id="addPromptsBtn" class="primary">加入队列</button>
+          <label class="file-button">
+            导入 txt/csv
+            <input id="fileInput" type="file" accept=".txt,.csv,text/plain,text/csv">
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>执行设置</h2>
+        <div class="grid">
+          <label>
+            间隔模式
+            <select id="intervalMode">
+              <option value="fixed">固定间隔</option>
+              <option value="random">随机间隔</option>
+            </select>
+          </label>
+          <label>
+            固定间隔(秒)
+            <input id="fixedIntervalSec" type="number" min="0" step="1">
+          </label>
+          <label>
+            随机最小(秒)
+            <input id="randomMinSec" type="number" min="1" step="1">
+          </label>
+          <label>
+            随机最大(秒)
+            <input id="randomMaxSec" type="number" min="1" step="1">
+          </label>
+          <label>
+            重试次数
+            <input id="retryLimit" type="number" min="0" step="1">
+          </label>
+          <label>
+            识别超时(秒)
+            <input id="detectTimeoutSec" type="number" min="30" step="1">
+          </label>
+          <label>
+            下载子目录
+            <input id="downloadSubfolder" type="text" placeholder="chatgpt-images">
+          </label>
+          <label>
+            文件名前缀
+            <input id="filenamePrefix" type="text" placeholder="image">
+          </label>
+        </div>
+        <div class="row toggles">
+          <label class="checkbox">
+            <input id="autoDownload" type="checkbox">
+            自动下载图片
+          </label>
+          <label class="checkbox">
+            <input id="autoSelectCreateImage" type="checkbox">
+            自动切换 Create image
+          </label>
+        </div>
+        <div class="row">
+          <button id="saveSettingsBtn">保存设置</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>队列控制</h2>
+        <div class="row controls">
+          <button id="startBtn" class="primary">开始</button>
+          <button id="pauseBtn">暂停</button>
+          <button id="resumeBtn">继续</button>
+          <button id="stopBtn" class="danger">停止</button>
+        </div>
+        <div class="row controls secondary">
+          <button id="clearCompletedBtn">清理已完成</button>
+          <button id="clearAllBtn">清空队列</button>
+          <button id="clearLogsBtn">清空日志</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>任务列表</h2>
+        <div id="taskList" class="task-list"></div>
+      </section>
+
+      <section class="panel">
+        <h2>运行日志</h2>
+        <div id="logList" class="log-list"></div>
+      </section>
+    </main>
+
+    <script src="shared.js"></script>
+    <script src="popup.js"></script>
+  </body>
+  </html>
