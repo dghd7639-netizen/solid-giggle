@@ -27,6 +27,7 @@ const {
   sleep,
   generateId,
   sanitizeFilename,
+  updateTaskSequenceNumber,
   getNextTaskSequenceNumber,
   normalizeTaskSequenceNumbers,
   getTaskSummary,
@@ -214,6 +215,8 @@ async function handleMessage(message, sender) {
       return retryTask(message.taskId);
     case MESSAGE_TYPES.DELETE_TASK:
       return deleteTask(message.taskId);
+    case MESSAGE_TYPES.UPDATE_TASK_SEQUENCE:
+      return updateTaskSequence(message.taskId, message.sequenceNumber);
     case MESSAGE_TYPES.UNDO_LAST_ACTION:
       return undoLastAction();
     case MESSAGE_TYPES.PAUSE_QUEUE:
@@ -332,6 +335,8 @@ async function handleNativeCommand(message) {
       });
     case "delete-task":
       return deleteTask(payload.taskId);
+    case "update-task-sequence":
+      return updateTaskSequence(payload.taskId, payload.sequenceNumber);
     case "clear-completed":
       return clearCompletedTasks();
     case "clear-failed":
@@ -740,6 +745,42 @@ async function retryTask(taskId) {
   await saveUndoSnapshot(`重跑任务「${target.filename}」`, state);
   await setState({ [STORAGE_KEYS.TASKS]: tasks });
   await appendLog("info", `已将任务「${target.filename}」重新加入队列`, {
+    taskId: target.id
+  });
+  return getPublicState();
+}
+
+async function updateTaskSequence(taskId, sequenceNumber) {
+  const state = await getState();
+  const target = state.tasks.find((task) => task.id === taskId);
+
+  if (!target) {
+    await appendLog("warning", "未找到要修改序号的任务");
+    return getPublicState();
+  }
+
+  if ([TASK_STATUS.RUNNING, TASK_STATUS.DOWNLOADING].includes(target.status)) {
+    await appendLog("warning", `任务正在生成或下载中，不能修改序号：${target.filename}`, {
+      taskId: target.id
+    });
+    return getPublicState();
+  }
+
+  const nextSequenceNumber = Number(sequenceNumber);
+  if (!Number.isInteger(nextSequenceNumber) || nextSequenceNumber <= 0) {
+    throw new Error("序号必须是大于 0 的整数");
+  }
+
+  const tasks = state.tasks.map((task) =>
+    task.id === target.id
+      ? updateTaskSequenceNumber(task, nextSequenceNumber)
+      : task
+  );
+  const updated = tasks.find((task) => task.id === target.id);
+
+  await saveUndoSnapshot(`修改任务序号「${target.filename}」`, state);
+  await setState({ [STORAGE_KEYS.TASKS]: tasks });
+  await appendLog("info", `任务序号已更新为 ${nextSequenceNumber}：${updated.filename}`, {
     taskId: target.id
   });
   return getPublicState();

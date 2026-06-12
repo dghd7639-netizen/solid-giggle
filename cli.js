@@ -40,6 +40,13 @@ function parseArgs(argv) {
     };
   }
 
+  if (rawCommand === "update-sequence") {
+    return {
+      command: "update-task-sequence",
+      payload: parseUpdateSequencePayload(rest)
+    };
+  }
+
   if (rawCommand === "start") {
     return {
       command: "start",
@@ -146,6 +153,33 @@ function parseDeletePayload(args) {
   return { taskId };
 }
 
+function parseUpdateSequencePayload(args) {
+  let taskId = "";
+  let sequenceNumber = null;
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === "--task-id") {
+      taskId = args[++index];
+      if (!taskId) {
+        throw new Error("--task-id requires a value");
+      }
+    } else if (arg === "--sequence-number") {
+      sequenceNumber = parsePositiveInteger(args[++index], arg);
+    } else {
+      throw new Error(`Unknown update-sequence option: ${arg}`);
+    }
+  }
+
+  if (!taskId) {
+    throw new Error("--task-id requires a value");
+  }
+  if (!sequenceNumber) {
+    throw new Error("--sequence-number requires a value");
+  }
+
+  return { taskId, sequenceNumber };
+}
+
 function parseSettingsPayload(args) {
   let settings = null;
   for (let index = 0; index < args.length; index += 1) {
@@ -193,6 +227,14 @@ function parsePositiveNumber(value, flag) {
   const number = Number(value);
   if (!Number.isFinite(number) || number <= 0) {
     throw new Error(`Invalid number for ${flag}: ${value}`);
+  }
+  return number;
+}
+
+function parsePositiveInteger(value, flag) {
+  const number = parsePositiveNumber(value, flag);
+  if (!Number.isInteger(number)) {
+    throw new Error(`Invalid integer for ${flag}: ${value}`);
   }
   return number;
 }
@@ -279,6 +321,7 @@ function printHelp() {
   node cli.js start --timeout-total 300
   node cli.js start --timeout-total 300 --timeout-busy 90
   node cli.js delete --task-id task_123
+  node cli.js update-sequence --task-id task_123 --sequence-number 12
   node cli.js clear-completed
   node cli.js clear-failed
   node cli.js clear-all

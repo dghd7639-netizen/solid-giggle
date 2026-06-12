@@ -325,6 +325,36 @@ label select {
   background: linear-gradient(180deg, rgba(240, 253, 244, 0.9) 0%, rgba(255, 255, 255, 0.82) 100%);
 }
 
+.task-sequence-control {
+  display: grid;
+  grid-template-columns: auto minmax(72px, 96px);
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin: 8px 0 2px;
+  padding: 6px 8px;
+  border: 1px solid rgba(42, 34, 24, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 253, 250, 0.72);
+  color: var(--muted);
+}
+
+.task-sequence-control span {
+  font-size: 12px;
+}
+
+.task-sequence-input {
+  width: 88px;
+  min-height: 32px;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.task-sequence-input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .task-head,
 .log-head {
   display: flex;

@@ -71,6 +71,26 @@ test("parses delete command with task id", () => {
   });
 });
 
+test("parses update sequence command", () => {
+  assert.deepEqual(
+    parseArgs(["update-sequence", "--task-id", "task_123", "--sequence-number", "12"]),
+    {
+      command: "update-task-sequence",
+      payload: {
+        taskId: "task_123",
+        sequenceNumber: 12
+      }
+    }
+  );
+});
+
+test("rejects update sequence without positive integer", () => {
+  assert.throws(
+    () => parseArgs(["update-sequence", "--task-id", "task_123", "--sequence-number", "1.5"]),
+    /Invalid integer/
+  );
+});
+
 test("parses clear-all command", () => {
   assert.deepEqual(parseArgs(["clear-all"]), {
     command: "clear-all",

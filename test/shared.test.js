@@ -8,10 +8,12 @@ const {
   createTaskFromInput,
   normalizeTaskSequenceNumber,
   normalizeTaskSequenceNumbers,
+  replaceFilenameSequenceNumber,
   getNextTaskSequenceNumber,
   getEarliestOpenBatchId,
   reconcileDownloadItems,
   resetTaskForRetry,
+  updateTaskSequenceNumber,
   shouldScheduleAfterTaskResult,
   computeCooldownResumeAt
 } = require("../shared");
@@ -83,6 +85,31 @@ test("new tasks store a fixed sequence number when they enter the queue", () => 
 
   assert.equal(task.sequenceNumber, 5);
   assert.match(task.filename, /_005$/);
+});
+
+test("updating a task sequence number rewrites the filename suffix", () => {
+  const task = createTaskFromPrompt("一只小猫", 0, {
+    filenamePrefix: "image",
+    downloadSubfolder: "chatgpt-images"
+  });
+
+  const updated = updateTaskSequenceNumber(task, 12);
+
+  assert.equal(updated.sequenceNumber, 12);
+  assert.match(updated.filename, /_012$/);
+  assert.equal(task.sequenceNumber, 1);
+  assert.match(task.filename, /_001$/);
+});
+
+test("filename sequence replacement preserves file extensions", () => {
+  assert.equal(replaceFilenameSequenceNumber("image_cat_001.png", 23), "image_cat_023.png");
+});
+
+test("updating a task sequence number rejects invalid values", () => {
+  assert.throws(
+    () => updateTaskSequenceNumber({ filename: "image_cat_001" }, 0),
+    /positive integer/
+  );
 });
 
 test("next sequence number advances past deleted-task gaps instead of reusing them", () => {

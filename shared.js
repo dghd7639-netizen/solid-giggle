@@ -35,6 +35,7 @@
     RETRY_FAILED: "batch-image:retry-failed",
     RETRY_TASK: "batch-image:retry-task",
     DELETE_TASK: "batch-image:delete-task",
+    UPDATE_TASK_SEQUENCE: "batch-image:update-task-sequence",
     UNDO_LAST_ACTION: "batch-image:undo-last-action",
     PAUSE_QUEUE: "batch-image:pause-queue",
     RESUME_QUEUE: "batch-image:resume-queue",
@@ -215,6 +216,36 @@
         failed: 0
       }
     };
+  }
+
+  function replaceFilenameSequenceNumber(filename, sequenceNumber) {
+    const safeSequenceNumber = Number(sequenceNumber);
+    if (!Number.isInteger(safeSequenceNumber) || safeSequenceNumber <= 0) {
+      throw new Error("Sequence number must be a positive integer");
+    }
+
+    const safeFilename = sanitizeFilename(filename, "image");
+    const padded = String(safeSequenceNumber).padStart(3, "0");
+    if (/_(\d{1,9})(?:\.[a-z0-9]+)?$/i.test(safeFilename)) {
+      return safeFilename.replace(/_(\d{1,9})(\.[a-z0-9]+)?$/i, `_${padded}$2`);
+    }
+    return `${safeFilename}_${padded}`;
+  }
+
+  function updateTaskSequenceNumber(task, sequenceNumber) {
+    if (!task || typeof task !== "object") {
+      return task;
+    }
+
+    const safeSequenceNumber = Number(sequenceNumber);
+    if (!Number.isInteger(safeSequenceNumber) || safeSequenceNumber <= 0) {
+      throw new Error("Sequence number must be a positive integer");
+    }
+
+    return Object.assign({}, task, {
+      sequenceNumber: safeSequenceNumber,
+      filename: replaceFilenameSequenceNumber(task.filename, safeSequenceNumber)
+    });
   }
 
   function createTaskFromInput(input, index, settings) {
@@ -471,6 +502,8 @@
     now,
     generateId,
     sanitizeFilename,
+    replaceFilenameSequenceNumber,
+    updateTaskSequenceNumber,
     extractTrailingSequenceNumber,
     getTaskSequenceNumber,
     getNextTaskSequenceNumber,

@@ -42,6 +42,8 @@ function buildDraftReplaceMessage() {
     (MESSAGE_TYPES && MESSAGE_TYPES.RETRY_TASK) || "batch-image:retry-task";
   const DELETE_TASK_TYPE =
     (MESSAGE_TYPES && MESSAGE_TYPES.DELETE_TASK) || "batch-image:delete-task";
+  const UPDATE_TASK_SEQUENCE_TYPE =
+    (MESSAGE_TYPES && MESSAGE_TYPES.UPDATE_TASK_SEQUENCE) || "batch-image:update-task-sequence";
   const UNDO_LAST_ACTION_TYPE =
     (MESSAGE_TYPES && MESSAGE_TYPES.UNDO_LAST_ACTION) || "batch-image:undo-last-action";
   const DRAFT_SAVE_DEBOUNCE_MS = 300;
@@ -292,6 +294,7 @@ function buildDraftReplaceMessage() {
     elements.clearLogsBtn.addEventListener("click", () => invokeAndRender(MESSAGE_TYPES.CLEAR_LOGS));
     if (elements.taskList) {
       elements.taskList.addEventListener("click", onTaskListClick);
+      elements.taskList.addEventListener("change", onTaskListChange);
     }
 
     if (elements.clearDraftBtn) {
@@ -590,6 +593,43 @@ function buildDraftReplaceMessage() {
       await invokeAndRender(DELETE_TASK_TYPE, { taskId });
       return;
     }
+  }
+
+  async function onTaskListChange(event) {
+    if (!(event.target instanceof HTMLInputElement)) {
+      return;
+    }
+
+    if (!event.target.classList.contains("task-sequence-input")) {
+      return;
+    }
+
+    const taskId = event.target.dataset.taskId || "";
+    const sequenceNumber = Number(event.target.value);
+    if (!taskId || !Number.isInteger(sequenceNumber) || sequenceNumber <= 0) {
+      setStatusText("序号必须是大于 0 的整数");
+      render(latestState);
+      return;
+    }
+
+    try {
+      const state = await invokeRaw(UPDATE_TASK_SEQUENCE_TYPE, {
+        taskId,
+        sequenceNumber
+      });
+      latestState = state;
+      render(state);
+      setStatusText(`序号已更新为 ${sequenceNumber}`);
+    } catch (error) {
+      console.warn("[popup] update task sequence failed", error);
+      setStatusText(error.message || String(error));
+      render(latestState);
+    }
+  }
+
+  function canEditTaskSequence(task) {
+    const status = String((task && task.status) || "pending").toLowerCase();
+    return !["running", "downloading"].includes(status);
   }
 
   async function onExportLogs() {
@@ -1031,6 +1071,10 @@ function buildDraftReplaceMessage() {
       const stateClass = getTaskCardStateClass(task);
       const retryDisabled = canRetryTask(task) ? "" : " disabled";
       const deleteDisabled = canDeleteTask(task) ? "" : " disabled";
+      const sequenceDisabled = canEditTaskSequence(task) ? "" : " disabled";
+      const sequenceNumber = Number.isInteger(task.sequenceNumber) && task.sequenceNumber > 0
+        ? task.sequenceNumber
+        : "";
       const card = document.createElement("article");
       card.className = stateClass ? `task-card ${stateClass}` : "task-card";
       card.dataset.taskId = task.id || "";
@@ -1040,6 +1084,19 @@ function buildDraftReplaceMessage() {
           <div class="task-name">${escapeHtml(task.filename)}</div>
           <span class="badge ${escapeHtml(task.status)}">${escapeHtml(progress.statusText)}</span>
         </div>
+        <label class="task-sequence-control">
+          <span>下载序号</span>
+          <input
+            class="task-sequence-input"
+            type="number"
+            min="1"
+            step="1"
+            inputmode="numeric"
+            value="${escapeHtml(sequenceNumber)}"
+            data-task-id="${escapeHtml(task.id || "")}"
+            ${sequenceDisabled}
+          >
+        </label>
         <div class="task-prompt">${escapeHtml(task.prompt)}</div>
         <div class="task-prompt">Retries: ${task.retries || 0} | Images: ${task.imageCount || 0}</div>
         ${
