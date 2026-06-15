@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ChatGPT Batch Image Generator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Batch image generation automation for ChatGPT web with queue, retry, download, and logs.",
   "permissions": [
     "storage",
@@ -16,7 +16,7 @@
     "https://chat.openai.com/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background-wrapper.js"
   },
   "action": {
     "default_title": "ChatGPT Batch Image Generator",
@@ -30,6 +30,7 @@
       ],
       "js": [
         "shared.js",
+        "content-hotfix.js",
         "content.js"
       ],
       "run_at": "document_idle"
